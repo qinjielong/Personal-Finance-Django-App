@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<script src="/static/js/jquery-3.1.1.min.js.js" type="text/javascript"></script>
+<script src="/static/highcharts/highcharts.js"></script>
+<script src="/static/highcharts/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/drilldown.js"></script>
+{% endblock %}
+{% load humanize %}
+{% block content %}
+<h2>Overview of accounts</h2>
+<form action="/accounts/" method="post" class="ink-form">
+    <input type='hidden' name='action' value='transfer'>
+    {% csrf_token %}
+     <label for="date">Date</label>
+    {{ transfer_form.date }}
+    <label for="from_acct">From Account</label>
+    {{ transfer_form.from_acct }}
+    <label for="to_acct">To Account</label>
+    {{ transfer_form.to_acct }}
+    <label for="amount">Amount</label>
+    {{ transfer_form.amount }}
+    <input type="submit" value="Transfer" />
+</form>
+<br />
+<h4>Filter Chart Data</h4>
+<form action="/accounts/" method="post" class="ink-form">
+    <input type='hidden' name='action' value='date_filter'>
+    {% csrf_token %}
+    {{ filter_form }}
+    <input type="submit" value="Filter Transactions" />
+</form>
+<div class="all-25">
+    <br />
+    <h4>Assets</h4>
+<table class="ink-table alternating">
+    <thead>
+    <tr>
+        <th class="align-left">Acount</th>
+        <th class="align-left">Balance</th>
+    </tr>
+    </thead>
+{% for account in accounts %}
+    <tr>
+        <td><a href="/transactions/{{ account }}/">{{ account.name }}</a></td>
+        <td>{{ account.balance|intcomma }}</td>
+    </tr>
+{% endfor %}
+    </table>
+    </div>
+<div id="container" align="right" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
+<script>
+$(function () {
+    // Create the chart
+    Highcharts.chart('container', {
+        chart: {
+            type: 'pie'
+        },
+        title: {
+            text: 'Spending by Budget {{ chart_header }}'
+        },
+        subtitle: {
+            text: 'Click the slices to view breakdown by category.'
+        },
+        plotOptions: {
+            series: {
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.name}: ${point.y:.1f}'
+                }
+            }
+        },
+
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>${point.y:.2f}</b><br/>'
+        },
+        series: [{
+            name: 'Budgets',
+            colorByPoint: true,
+            data: [
+            {% for key, value in budget_data.items %}
+            {
+                name: '{{ key }}',
+                y: {{ value }},
+                drilldown: '{{ key }}'
+
+            {% if forloop.last %}}]{% else %}},{% endif %}{% endfor %}
+        }],
+        drilldown: {
+            series: [
+                {% for key, value in cat_data.items %}
+                {
+                name: '{{ key }}',
+                id: '{{ key }}',
+                data: [
+                     {% for k, v in value.items %}
+                    ['{{ k }}', {{ v }}]{% if forloop.last %}{% else %},{% endif %}{% endfor %}
+                ]
+
+            {% if forloop.last %}{% else %}},{% endif %}{% endfor %}
+
+            }]
+        }
+    });
+});
+</script>
+{% endblock %}

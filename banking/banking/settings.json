@@ -1,0 +1,12 @@
+
+    {
+    "Filename": "settings.json",
+    "Debug": "T",
+    "Secret_Key": "putyoursecretkeyhere",
+    "DB_Engine": "django.db.backends.sqlite3",
+    "DB_Name": "db.sqlite3",
+    "DB_User": "",
+    "DB_Password": "",
+    "DB_Host": "",
+    "Host": "*"
+    }
